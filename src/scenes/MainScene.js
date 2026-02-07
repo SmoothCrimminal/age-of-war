@@ -1,5 +1,6 @@
 import BaseScene from "./BaseScene";
 import Unit from "../models/unit";
+import Base from "../models/base";
 
 class MainScene extends BaseScene {
     constructor(config) {
@@ -11,21 +12,27 @@ class MainScene extends BaseScene {
         
         this.leftUnits = [];
         this.rightUnits = [];
+
+        this.leftBase = null;
+        this.rightBase = null;
+
+        this.isGameOver = false;
     }
 
     create() {
         this.drawLane();
-        this.drawBases();
+        this.createBases();
 
         this.spawnTestUnit('left', this.leftBaseX + 50);
         this.spawnTestUnit('right', this.rightBaseX - 50);
     }
 
     update(_, delta) {
-        this.updateUnits(this.leftUnits, this.rightUnits, delta);
-        this.updateUnits(this.rightUnits, this.leftUnits, delta);
+        this.updateUnits(this.leftUnits, this.rightUnits, delta, this.rightBase);
+        this.updateUnits(this.rightUnits, this.leftUnits, delta, this.leftBase);
 
         this.cleanupDead();
+        this.checkGameOver();
     }
 
     spawnTestUnit(team, x) {
@@ -42,8 +49,8 @@ class MainScene extends BaseScene {
             this.rightUnits.push(unit);
     }
 
-    updateUnits(units, enemies, delta) {
-        units.forEach(unit => unit.update(delta, enemies));
+    updateUnits(units, enemies, delta, enemyBase) {
+        units.forEach(unit => unit.update(delta, enemies, enemyBase));
     }
 
     cleanupDead() {
@@ -57,14 +64,21 @@ class MainScene extends BaseScene {
         graphics.lineBetween(0, this.laneY, this.config.width, this.laneY);
     }
 
-    drawBases() {
-        this.drawBase(this.leftBaseX, 0xff4444);
-        this.drawBase(this.rightBaseX, 0x4444ff);
+    createBases() {
+        this.leftBase = new Base(this, this.leftBaseX, this.laneY, 'left');
+        this.rightBase = new Base(this, this.rightBaseX, this.laneY, 'right');
     }
 
-    drawBase(x, color) {
-        const size = 40;
-        this.add.rectangle(x, this.laneY, size, size, color);
+    checkGameOver() {
+        if (this.leftBase.isDead)
+            return this.endGame('RIGHT WINS');
+        if (this.rightBase.isDead)
+            return this.endGame('LEFT WINS');
+    }
+
+    endGame(text) {
+        this.isGameOver = true;
+        this.add.text(500, 200, text, { fontSize: '48px' });
     }
 }
 

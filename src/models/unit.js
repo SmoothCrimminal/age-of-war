@@ -20,13 +20,20 @@ class Unit {
         this.createVisual(x, y);
     }
 
-    update(delta, enemies) {
+    update(delta, enemies, enemyBase) {
         if (this.isDead)
             return;
 
         this.findTarget(enemies);
 
         if (this.hasTarget()) {
+            this.attack(delta);
+            return;
+        }
+
+        const base = this.findBaseTarget(enemyBase)
+        if (base) {
+            this.target = base;
             this.attack(delta);
             return;
         }
@@ -46,6 +53,16 @@ class Unit {
 
     findTarget(enemies) {
         this.target = enemies.find(e => this.isValidTarget(e) && this.isInRange(e)) || null;
+    }
+
+    findBaseTarget(enemyBase) {
+        if (!enemyBase)
+            return null;
+
+        if (this.isInRange(enemyBase))
+            return enemyBase;
+
+        return null;
     }
 
     isValidTarget(enemy) {
