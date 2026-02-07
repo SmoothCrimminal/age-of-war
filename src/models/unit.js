@@ -6,18 +6,31 @@ class Unit {
 
         this.speed = 60;
         this.range = 35;
+
+        this.maxHp = 100;
+        this.hp = 100;
+
+        this.damage = 10;
+        this.attackCooldownMs = 600;
+        this.attackTimerMs = 0;
+
         this.target = null;
+        this.isDead = false;
 
         this.createVisual(x, y);
     }
 
     update(delta, enemies) {
+        if (this.isDead)
+            return;
+
         this.findTarget(enemies);
 
         if (this.hasTarget()) {
+            this.attack(delta);
             return;
         }
-        
+
         this.move(delta);
     }
 
@@ -32,7 +45,11 @@ class Unit {
     }
 
     findTarget(enemies) {
-        this.target = enemies.find(e => this.isInRange(e)) || null;
+        this.target = enemies.find(e => this.isValidTarget(e) && this.isInRange(e)) || null;
+    }
+
+    isValidTarget(enemy) {
+        return enemy && !enemy.isDead;
     }
 
     isInRange(enemy) {
@@ -42,6 +59,43 @@ class Unit {
 
     hasTarget() {
         return this.target !== null;
+    }
+
+    attack(delta) {
+        this.attackTimerMs += delta;
+
+        if (!this.canAttack())
+            return;
+
+        this.resetAttackTimer();
+        this.dealDamage();
+    }
+
+    canAttack() {
+        return this.attackTimerMs >= this.attackCooldownMs;
+    }
+
+    resetAttackTimer() {
+        this.attackTimerMs = 0;
+    }
+
+    dealDamage() {
+        if (!this.isValidTarget(this.target))
+            return;
+
+        this.target.takeDamage(this.damage);
+    }
+
+    takeDamage(amount) {
+        this.hp -= amount;
+        if (this.hp <= 0) {
+            this.die();
+        }
+    }
+
+    die() {
+        this.isDead = true;
+        this.body.destroy();
     }
 }
 

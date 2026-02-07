@@ -24,6 +24,8 @@ class MainScene extends BaseScene {
     update(_, delta) {
         this.updateUnits(this.leftUnits, this.rightUnits, delta);
         this.updateUnits(this.rightUnits, this.leftUnits, delta);
+
+        this.cleanupDead();
     }
 
     spawnTestUnit(team, x) {
@@ -42,6 +44,11 @@ class MainScene extends BaseScene {
 
     updateUnits(units, enemies, delta) {
         units.forEach(unit => unit.update(delta, enemies));
+    }
+
+    cleanupDead() {
+        this.leftUnits = this.leftUnits.filter(u => !u.isDead);
+        this.rightUnits = this.rightUnits.filter(u => !u.isDead);
     }
 
     drawLane() {
