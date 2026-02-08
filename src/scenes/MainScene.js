@@ -56,6 +56,7 @@ class MainScene extends BaseScene {
 
     updateHud() {
         this.hud.setGold(this.economy.getGold());
+        this.hud.setBaseHp(this.leftBase, this.rightBase);
     }
 
     updateCooldown(delta) {

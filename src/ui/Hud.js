@@ -5,7 +5,28 @@ class Hud {
         this.onSpawnRight = null;
 
         this.createGoldText();
+        this.createBaseHpTexts();
         this.createButtons();
+    }
+
+    createBaseHpTexts() {
+        this.leftBaseText = this.scene.add.text(10, 10, '', {
+            fontSize: '18px'
+        });
+
+        this.rightBaseText = this.scene.add.text(10, 40, '', {
+            fontSize: '18px'
+        });
+    }
+
+    setBaseHp(leftBase, rightBase) {
+        this.leftBaseText.setText(
+            `LEFT BASE: ${leftBase.hp}/${leftBase.maxHp}`
+        );
+
+        this.rightBaseText.setText(
+            `RIGHT BASE: ${rightBase.hp}/${rightBase.maxHp}`
+        );
     }
 
     createGoldText() {
