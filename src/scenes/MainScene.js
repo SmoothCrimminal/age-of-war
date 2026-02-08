@@ -4,6 +4,7 @@ import Base from "../models/base";
 import Economy from "../logic/Economy";
 import Cooldown from "../logic/Cooldown";
 import Hud from "../ui/Hud";
+import { UnitTypes } from "../models/unitTypes";
 
 class MainScene extends BaseScene {
     constructor(config) {
@@ -45,6 +46,9 @@ class MainScene extends BaseScene {
         this.playerEconomy = new Economy();
         this.aiEconomy = new Economy();
 
+        this.aiPlan = ['swordsman', 'swordsman', 'tank'];
+        this.aiPlanIndex = 0;
+
         this.spawnCost = 40;
         this.killReward = 15;
 
@@ -58,7 +62,7 @@ class MainScene extends BaseScene {
     createHud() {
         this.hud = new Hud(this);
 
-        this.hud.onSpawnLeft = () => this.trySpawn(this.leftBaseX + 50);
+        this.hud.onSpawnLeft = (unitTypeKey) => this.trySpawn(this.leftBaseX + 50, unitTypeKey);
     }
 
     updateHud() {
@@ -85,38 +89,53 @@ class MainScene extends BaseScene {
         return this.aiSpawnTimerMs >= this.aiSpawnIntervalMs;
     }
 
-    trySpawn(x) {
-        if (!this.canSpawn())
+    trySpawn(x, unitKey) {
+        const unitType = UnitTypes[unitKey];
+        if (!unitType)
             return;
 
+        if (!this.playerSpawnCooldown.isReady())
+            return;
+        
         if (!this.playerEconomy.spend(this.spawnCost))
             return;
 
         this.playerSpawnCooldown.trigger();
-        this.spawnUnit('left', x);
+        this.spawnUnit('left', x, unitType);
     }
 
     trySpawnAi(x) {
         if (!this.aiSpawnCooldown.isReady())
             return;
 
+        const typeKey = this.getNextAiUnitType();
+        const unitType = UnitTypes[typeKey];
+        if (!unitType)
+            return;
+
         if (!this.aiEconomy.spend(this.spawnCost))
             return;
 
         this.aiSpawnCooldown.trigger();
-        this.spawnUnit('right', x);
+        this.spawnUnit('right', x, unitType);
+        this.advanceAiPlan();
     }
 
-    canSpawn() {
-        return this.playerSpawnCooldown.isReady();
+    getNextAiUnitType() {
+        return this.aiPlan[this.aiPlanIndex];
     }
 
-    spawnUnit(team, x) {
+    advanceAiPlan() {
+        this.aiPlanIndex = (this.aiPlanIndex + 1) % this.aiPlan.length;
+    }
+
+    spawnUnit(team, x, unitType) {
         const unit = new Unit(
             this,
             x,
             this.laneY,
-            team
+            team,
+            unitType
         );
 
         if (team === 'left')

@@ -35,7 +35,8 @@ class Hud {
     }
 
     createButtons() {
-        this.leftBtn = this.createButton(10, 110, 'Spawn LEFT', () => this.fireLeft());
+        this.swordsManButton = this.createButton(10, 110, 'Swordsman (40)', () => this.fireLeft('swordsman'));
+        this.tankButton = this.createButton(10, 150, 'Tank (70)', () => this.fireLeft('tank'));
     }
 
     createButton(x, y, label, onClick) {
@@ -49,8 +50,8 @@ class Hud {
         this.goldText.setText(`Gold: ${value}`);
     }
 
-    fireLeft() {
-        if (this.onSpawnLeft) this.onSpawnLeft();
+    fireLeft(typeKey) {
+        if (this.onSpawnLeft) this.onSpawnLeft(typeKey);
     }
 }
 

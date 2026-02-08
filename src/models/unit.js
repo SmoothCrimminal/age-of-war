@@ -1,18 +1,10 @@
 class Unit {
-    constructor(scene, x, y, team) {
+    constructor(scene, x, y, team, unitType) {
         this.scene = scene;
         this.team = team;
+        this.unitType = unitType;
         this.direction = team === 'left' ? 1 : -1;
 
-        this.speed = 60;
-        this.range = 35;
-        this.personalSpace = 34;
-
-        this.maxHp = 100;
-        this.hp = 100;
-
-        this.damage = 10;
-        this.attackCooldownMs = 600;
         this.attackTimerMs = 0;
 
         this.target = null;
@@ -45,11 +37,12 @@ class Unit {
 
     createVisual(x, y) {
         const color = this.team === 'left' ? 0xffffff : 0xaaaaaa;
-        this.body = this.scene.add.rectangle(x, y, 30, 30, color);
+        const s = this.unitType.size;
+        this.body = this.scene.add.rectangle(x, y, s, s, color);
     }
 
     move(delta) {
-        const dx = this.direction * this.speed * (delta / 1000);
+        const dx = this.direction * this.unitType.speed * (delta / 1000);
         this.body.x += dx;
     }
 
@@ -58,7 +51,7 @@ class Unit {
             return false;
 
         const dx = (allyAhead.body.x - this.body.x) * this.direction;
-        return dx > 0 && dx < this.personalSpace;
+        return dx > 0 && dx < this.unitType.size + 4;
     }
 
     moveWithAllySpacing(delta, allyAhead) {
@@ -88,7 +81,7 @@ class Unit {
 
     isInRange(enemy) {
         const distance = Math.abs(enemy.body.x - this.body.x);
-        return distance <= this.range;
+        return distance <= this.unitType.range;
     }
 
     hasTarget() {
@@ -106,7 +99,7 @@ class Unit {
     }
 
     canAttack() {
-        return this.attackTimerMs >= this.attackCooldownMs;
+        return this.attackTimerMs >= this.unitType.attackCooldownMs;
     }
 
     resetAttackTimer() {
@@ -117,12 +110,12 @@ class Unit {
         if (!this.isValidTarget(this.target))
             return;
 
-        this.target.takeDamage(this.damage, this);
+        this.target.takeDamage(this.unitType.damage, this);
     }
 
     takeDamage(amount, attacker) {
-        this.hp -= amount;
-        if (this.hp <= 0) {
+        this.unitType.hp -= amount;
+        if (this.unitType.hp <= 0) {
             this.die(attacker);
         }
     }
