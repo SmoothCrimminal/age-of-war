@@ -6,6 +6,7 @@ class Unit {
 
         this.speed = 60;
         this.range = 35;
+        this.personalSpace = 34;
 
         this.maxHp = 100;
         this.hp = 100;
@@ -16,11 +17,12 @@ class Unit {
 
         this.target = null;
         this.isDead = false;
+        this.killedBy = null;
 
         this.createVisual(x, y);
     }
 
-    update(delta, enemies, enemyBase) {
+    update(delta, enemies, enemyBase, allyAhead) {
         if (this.isDead)
             return;
 
@@ -38,7 +40,7 @@ class Unit {
             return;
         }
 
-        this.move(delta);
+        this.moveWithAllySpacing(delta, allyAhead);
     }
 
     createVisual(x, y) {
@@ -49,6 +51,21 @@ class Unit {
     move(delta) {
         const dx = this.direction * this.speed * (delta / 1000);
         this.body.x += dx;
+    }
+
+    shouldStopForAlly(allyAhead) {
+        if (!allyAhead)
+            return false;
+
+        const dx = (allyAhead.body.x - this.body.x) * this.direction;
+        return dx > 0 && dx < this.personalSpace;
+    }
+
+    moveWithAllySpacing(delta, allyAhead) {
+        if (this.shouldStopForAlly(allyAhead))
+            return;
+
+        this.move(delta);
     }
 
     findTarget(enemies) {
@@ -100,18 +117,19 @@ class Unit {
         if (!this.isValidTarget(this.target))
             return;
 
-        this.target.takeDamage(this.damage);
+        this.target.takeDamage(this.damage, this);
     }
 
-    takeDamage(amount) {
+    takeDamage(amount, attacker) {
         this.hp -= amount;
         if (this.hp <= 0) {
-            this.die();
+            this.die(attacker);
         }
     }
 
-    die() {
+    die(killer) {
         this.isDead = true;
+        this.killedBy = killer || null;
         this.body.destroy();
     }
 }
