@@ -2,7 +2,6 @@ class Hud {
     constructor(scene) {
         this.scene = scene;
         this.onSpawnLeft = null;
-        this.onSpawnRight = null;
 
         this.createGoldText();
         this.createBaseHpTexts();
@@ -37,7 +36,6 @@ class Hud {
 
     createButtons() {
         this.leftBtn = this.createButton(10, 110, 'Spawn LEFT', () => this.fireLeft());
-        this.rightBtn = this.createButton(10, 150, 'Spawn RIGHT', () => this.fireRight());
     }
 
     createButton(x, y, label, onClick) {
@@ -53,10 +51,6 @@ class Hud {
 
     fireLeft() {
         if (this.onSpawnLeft) this.onSpawnLeft();
-    }
-
-    fireRight() {
-        if (this.onSpawnRight) this.onSpawnRight();
     }
 }
 

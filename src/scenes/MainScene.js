@@ -35,50 +35,83 @@ class MainScene extends BaseScene {
 
         this.updateHud();
         this.updateCooldown(delta);
+        this.updateAi(delta);
 
         this.cleanupDead();
         this.checkGameOver();
     }
 
     createEconomy() {
-        this.economy = new Economy();
+        this.playerEconomy = new Economy();
+        this.aiEconomy = new Economy();
+
         this.spawnCost = 40;
         this.killReward = 15;
-        this.spawnCooldown = new Cooldown(800);
+
+        this.playerSpawnCooldown = new Cooldown(800);
+        this.aiSpawnCooldown = new Cooldown(900);
+
+        this.aiSpawnIntervalMs = 1200;
+        this.aiSpawnTimerMs = 0;
     }
 
     createHud() {
         this.hud = new Hud(this);
 
-        this.hud.onSpawnLeft = () => this.trySpawn('left', this.leftBaseX + 50);
-        this.hud.onSpawnRight = () => this.trySpawn('right', this.rightBaseX - 50);
+        this.hud.onSpawnLeft = () => this.trySpawn(this.leftBaseX + 50);
     }
 
     updateHud() {
-        this.hud.setGold(this.economy.getGold());
+        this.hud.setGold(this.playerEconomy.getGold());
         this.hud.setBaseHp(this.leftBase, this.rightBase);
     }
 
     updateCooldown(delta) {
-        this.spawnCooldown.update(delta)
+        this.playerSpawnCooldown.update(delta)
+        this.aiSpawnCooldown.update(delta);
     }
 
-    trySpawn(team, x) {
+    updateAi(delta) {
+        this.aiSpawnTimerMs += delta;
+
+        if (!this.isAiTimeToSpawn())
+            return;
+
+        this.aiSpawnTimerMs = 0;
+        this.trySpawnAi(this.rightBaseX - 50);
+    }
+
+    isAiTimeToSpawn() {
+        return this.aiSpawnTimerMs >= this.aiSpawnIntervalMs;
+    }
+
+    trySpawn(x) {
         if (!this.canSpawn())
             return;
 
-        if (!this.economy.spend(this.spawnCost))
+        if (!this.playerEconomy.spend(this.spawnCost))
             return;
 
-        this.spawnCooldown.trigger();
-        this.spawnTestUnit(team, x);
+        this.playerSpawnCooldown.trigger();
+        this.spawnUnit('left', x);
+    }
+
+    trySpawnAi(x) {
+        if (!this.aiSpawnCooldown.isReady())
+            return;
+
+        if (!this.aiEconomy.spend(this.spawnCost))
+            return;
+
+        this.aiSpawnCooldown.trigger();
+        this.spawnUnit('right', x);
     }
 
     canSpawn() {
-        return this.spawnCooldown.isReady();
+        return this.playerSpawnCooldown.isReady();
     }
 
-    spawnTestUnit(team, x) {
+    spawnUnit(team, x) {
         const unit = new Unit(
             this,
             x,
@@ -145,7 +178,10 @@ class MainScene extends BaseScene {
     }
 
     giveGoldToTeam(team, amount) {
-        this.economy.addGold(amount);
+        if (team === 'left')
+            this.playerEconomy.addGold(amount);
+        else
+            this.aiEconomy.addGold(amount);
     }
 
     drawLane() {
