@@ -23,7 +23,22 @@ class MainScene extends BaseScene {
         this.isGameOver = false;
     }
 
+    init() {
+        this.leftBaseX = 100;
+        this.rightBaseX = 1180;
+        this.laneY = 400;
+        
+        this.leftUnits = [];
+        this.rightUnits = [];
+
+        this.leftBase = null;
+        this.rightBase = null;
+
+        this.isGameOver = false;
+    }
+
     create() {
+        this.init();
         this.drawLane();
         this.createBases();
         this.createEconomy();
@@ -31,6 +46,9 @@ class MainScene extends BaseScene {
     }
 
     update(_, delta) {
+        if (this.isGameOver)
+            return;
+
         this.updateUnits(this.leftUnits, this.rightUnits, delta, this.rightBase);
         this.updateUnits(this.rightUnits, this.leftUnits, delta, this.leftBase);
 
@@ -63,6 +81,8 @@ class MainScene extends BaseScene {
         this.hud = new Hud(this);
 
         this.hud.onSpawnLeft = (unitTypeKey) => this.trySpawn(this.leftBaseX + 50, unitTypeKey);
+        this.hud.onRestart = () => this.restartGame();
+        this.hud.hideGameOver();
     }
 
     updateHud() {
@@ -223,7 +243,11 @@ class MainScene extends BaseScene {
 
     endGame(text) {
         this.isGameOver = true;
-        this.add.text(500, 200, text, { fontSize: '48px' });
+        this.hud.showGameOver(text);
+    }
+
+    restartGame() {
+        this.scene.restart();
     }
 }
 
